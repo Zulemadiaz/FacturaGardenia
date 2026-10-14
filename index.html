@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facturación - Vivero Gardenia</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+    .container { max-width: 800px; background: white; padding: 30px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
+    p.subtitle { text-align: center; color: #666; margin-bottom: 25px; }
+    .header-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    label { font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px; }
+    input[type="text"], input[type="date"], input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background-color: #2e7d32; color: white; }
+    .col-cant { width: 10%; }
+    .col-desc { width: 50%; }
+    .col-precio { width: 20%; }
+    .col-total { width: 20%; }
+    .total-row { font-weight: bold; background-color: #e8f5e9; }
+    .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+    .btn-add { background-color: #4caf50; color: white; }
+    .btn-print { background-color: #1976d2; color: white; float: right; }
+    .btn-remove { background-color: #e53935; color: white; padding: 4px 8px; border-radius: 3px; cursor: pointer; float: right; }
+    
+    @media print {
+      .no-print { display: none; }
+      body { background: white; margin: 0; }
+      .container { box-shadow: none; max-width: 100%; padding: 0; }
+      input { border: none; background: transparent; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🌿 Vivero Gardenia</h1>
+  <p class="subtitle">Nota de Pedido / Factura</p>
+
+  <div class="header-info">
+    <div>
+      <label>Cliente:</label>
+      <input type="text" placeholder="Nombre completo">
+    </div>
+    <div>
+      <label>Fecha:</label>
+      <input type="date" id="fecha">
+    </div>
+  </div>
+
+  <table id="tablaFactura">
+    <thead>
+      <tr>
+        <th class="col-cant">Cant.</th>
+        <th class="col-desc">Descripción (Planta y Maceta)</th>
+        <th class="col-precio">Precio Univ.</th>
+        <th class="col-total">Total</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpoTabla">
+      <tr>
+        <td><input type="number" class="cant" value="1" min="1" oninput="calcularTotales()"></td>
+        <td><input type="text" placeholder="Ej. Monstera Deliciosa (M-18)"></td>
+        <td><input type="number" class="precio" value="0" min="0" step="0.01" oninput="calcularTotales()"></td>
+        <td class="total-prod">$0.00</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td colspan="3" style="text-align: right;">Total Global:</td>
+        <td id="totalGlobal">$0.00</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <button class="btn btn-add no-print" onclick="agregarFila()">+ Agregar Producto</button>
+  <button class="btn btn-print no-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+</div>
+
+<script>
+  // Establecer fecha actual por defecto
+  document.getElementById('fecha').valueAsDate = new Date();
+
+  function calcularTotales() {
+    const filas = document.querySelectorAll('#cuerpoTabla tr');
+    let totalGlobal = 0;
+
+    filas.forEach(fila => {
+      const cantidad = parseFloat(fila.querySelector('.cant').value) || 0;
+      const precio = parseFloat(fila.querySelector('.precio').value) || 0;
+      const subtotal = cantidad * precio;
+
+      fila.querySelector('.total-prod').innerText = '$' + subtotal.toFixed(2);
+      totalGlobal += subtotal;
+    });
+
+    document.getElementById('totalGlobal').innerText = '$' + totalGlobal.toFixed(2);
+  }
+
+  function agregarFila() {
+    const tbody = document.getElementById('cuerpoTabla');
+    const nuevaFila = document.createElement('tr');
+
+    nuevaFila.innerHTML = `
+      <td><input type="number" class="cant" value="1" min="1" oninput="calcularTotales()"></td>
+      <td>
+        <input type="text" placeholder="Ej. Ficus Benjamina (M-24)">
+        <button class="btn-remove no-print" onclick="eliminarFila(this)">✕</button>
+      </td>
+      <td><input type="number" class="precio" value="0" min="0" step="0.01" oninput="calcularTotales()"></td>
+      <td class="total-prod">$0.00</td>
+    `;
+
+    tbody.appendChild(nuevaFila);
+    calcularTotales();
+  }
+
+  function eliminarFila(boton) {
+    const fila = boton.closest('tr');
+    fila.remove();
+    calcularTotales();
+  }
+</script>
+
+</body>
+</html>
