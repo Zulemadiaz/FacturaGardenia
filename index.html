@@ -9,7 +9,12 @@
     .container { max-width: 850px; background: white; padding: 30px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     
     .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2e7d32; padding-bottom: 15px; margin-bottom: 20px; }
-    h1 { color: #2e7d32; margin: 0; font-size: 1.8em; }
+    .logo-header { display: flex; align-items: center; gap: 18px; }
+    
+    /* Aumentamos la altura de la imagen del logo aquí */
+    .logo-header img { height: 110px; width: auto; object-fit: contain; }
+    
+    h1 { color: #2e7d32; margin: 0; font-size: 2em; }
     .num-factura { font-size: 1.2em; font-weight: bold; color: #555; background: #e8f5e9; padding: 5px 12px; border-radius: 4px; border: 1px solid #c8e6c9; }
     
     .header-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
@@ -47,9 +52,12 @@
 <div class="container">
   
   <div class="top-bar">
-    <div>
-      <h1>🌿 Vivero Gardenia</h1>
-      <span style="color: #666; font-size: 0.9em;">Nota de Pedido / Factura</span>
+    <div class="logo-header">
+      <img src="images/logo.png" alt="Logo Vivero Gardenia">
+      <div>
+        <h1>Vivero Gardenia</h1>
+        <span style="color: #666; font-size: 0.95em;">Nota de Pedido / Factura</span>
+      </div>
     </div>
     <div>
       <span class="num-factura" id="lblNumFactura">Factura #0001</span>
@@ -119,7 +127,6 @@
 <script>
   let contadorFactura = parseInt(localStorage.getItem('contador_factura_vivero')) || 1;
 
-  // Iniciar pantalla
   window.onload = function() {
     document.getElementById('fecha').valueAsDate = new Date();
     actualizarNumeroFacturaVisualmente();
@@ -182,7 +189,6 @@
     }
   }
 
-  // --- NUEVA FACTURA ---
   function nuevaFactura() {
     const cliente = document.getElementById('nombreCliente').value.trim();
     if (cliente !== '') {
@@ -190,17 +196,12 @@
         return;
       }
     }
-    
-    // Limpiar campos
     document.getElementById('nombreCliente').value = '';
     document.getElementById('fecha').valueAsDate = new Date();
     inicializarTabla();
-    
-    // Ocultar historial si estaba abierto
     document.getElementById('seccionHistorial').style.display = 'none';
   }
 
-  // --- GUARDADO Y HISTORIAL ---
   function obtenerFacturasGuardadas() {
     return JSON.parse(localStorage.getItem('facturas_vivero')) || [];
   }
@@ -251,13 +252,11 @@
     facturas.push(nuevaFacturaObj);
     localStorage.setItem('facturas_vivero', JSON.stringify(facturas));
 
-    // Incrementar número de factura para la siguiente
     contadorFactura++;
     localStorage.setItem('contador_factura_vivero', contadorFactura);
 
     alert(`Factura ${numFacturaStr} guardada con éxito.`);
     
-    // Preparar automáticamente la siguiente factura limpia
     actualizarNumeroFacturaVisualmente();
     document.getElementById('nombreCliente').value = '';
     inicializarTabla();
