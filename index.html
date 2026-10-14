@@ -6,27 +6,36 @@
   <title>Facturación - Vivero Gardenia</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
-    .container { max-width: 800px; background: white; padding: 30px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
-    p.subtitle { text-align: center; color: #666; margin-bottom: 25px; }
+    .container { max-width: 850px; background: white; padding: 30px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    
+    .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2e7d32; padding-bottom: 15px; margin-bottom: 20px; }
+    h1 { color: #2e7d32; margin: 0; font-size: 1.8em; }
+    .num-factura { font-size: 1.2em; font-weight: bold; color: #555; background: #e8f5e9; padding: 5px 12px; border-radius: 4px; border: 1px solid #c8e6c9; }
+    
     .header-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
     label { font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px; }
     input[type="text"], input[type="date"], input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
     th { background-color: #2e7d32; color: white; }
     .col-cant { width: 10%; }
     .col-desc { width: 50%; }
     .col-precio { width: 20%; }
     .col-total { width: 20%; }
-    .total-row { font-weight: bold; background-color: #e8f5e9; }
-    .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+    .total-row { font-weight: bold; background-color: #e8f5e9; font-size: 1.1em; }
+    
+    .actions-bar { margin-top: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; }
     .btn-add { background-color: #4caf50; color: white; }
-    .btn-print { background-color: #1976d2; color: white; float: right; }
-    .btn-remove { background-color: #e53935; color: white; padding: 4px 8px; border-radius: 3px; cursor: pointer; float: right; }
+    .btn-save { background-color: #2e7d32; color: white; }
+    .btn-new { background-color: #ff9800; color: white; font-size: 1em; }
+    .btn-history { background-color: #7b1fa2; color: white; }
+    .btn-print { background-color: #1976d2; color: white; margin-left: auto; }
+    .btn-remove { background-color: #e53935; color: white; padding: 4px 8px; border-radius: 3px; cursor: pointer; float: right; border: none; }
     
     @media print {
-      .no-print { display: none; }
+      .no-print { display: none !important; }
       body { background: white; margin: 0; }
       .container { box-shadow: none; max-width: 100%; padding: 0; }
       input { border: none; background: transparent; }
@@ -36,13 +45,22 @@
 <body>
 
 <div class="container">
-  <h1>🌿 Vivero Gardenia</h1>
-  <p class="subtitle">Nota de Pedido / Factura</p>
+  
+  <div class="top-bar">
+    <div>
+      <h1>🌿 Vivero Gardenia</h1>
+      <span style="color: #666; font-size: 0.9em;">Nota de Pedido / Factura</span>
+    </div>
+    <div>
+      <span class="num-factura" id="lblNumFactura">Factura #0001</span>
+      <button class="btn btn-new no-print" style="margin-left: 10px;" onclick="nuevaFactura()">➕ Nueva Factura</button>
+    </div>
+  </div>
 
   <div class="header-info">
     <div>
       <label>Cliente:</label>
-      <input type="text" placeholder="Nombre completo">
+      <input type="text" id="nombreCliente" placeholder="Nombre del cliente">
     </div>
     <div>
       <label>Fecha:</label>
@@ -54,18 +72,13 @@
     <thead>
       <tr>
         <th class="col-cant">Cant.</th>
-        <th class="col-desc">Descripción (Planta y Maceta)</th>
-        <th class="col-precio">Precio Uni.</th>
+        <th class="col-desc">Descripción (Planta y Tamaño de Maceta)</th>
+        <th class="col-precio">Precio Unit.</th>
         <th class="col-total">Total</th>
       </tr>
     </thead>
     <tbody id="cuerpoTabla">
-      <tr>
-        <td><input type="number" class="cant" value="1" min="1" oninput="calcularTotales()"></td>
-        <td><input type="text" placeholder="Ej. Monstera Deliciosa (M-18)"></td>
-        <td><input type="number" class="precio" value="0" min="0" step="0.01" oninput="calcularTotales()"></td>
-        <td class="total-prod">$0.00</td>
-      </tr>
+      <!-- Se genera dinámicamente -->
     </tbody>
     <tfoot>
       <tr class="total-row">
@@ -75,13 +88,54 @@
     </tfoot>
   </table>
 
-  <button class="btn btn-add no-print" onclick="agregarFila()">+ Agregar Producto</button>
-  <button class="btn btn-print no-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+  <!-- Barra de Acciones -->
+  <div class="actions-bar no-print">
+    <button class="btn btn-add" onclick="agregarFila()">+ Agregar Producto</button>
+    <button class="btn btn-save" onclick="guardarFactura()">💾 Guardar Factura</button>
+    <button class="btn btn-new" onclick="nuevaFactura()">➕ Nueva Factura</button>
+    <button class="btn btn-history" onclick="mostrarHistorial()">📋 Ver Historial</button>
+    <button class="btn btn-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+  </div>
+
+  <!-- Sección de Historial -->
+  <div id="seccionHistorial" style="margin-top: 30px; display: none;" class="no-print">
+    <h2>Historial de Facturas Emitidas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>N° Factura</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpoHistorial"></tbody>
+    </table>
+  </div>
+
 </div>
 
 <script>
-  // Establecer fecha actual por defecto
-  document.getElementById('fecha').valueAsDate = new Date();
+  let contadorFactura = parseInt(localStorage.getItem('contador_factura_vivero')) || 1;
+
+  // Iniciar pantalla
+  window.onload = function() {
+    document.getElementById('fecha').valueAsDate = new Date();
+    actualizarNumeroFacturaVisualmente();
+    inicializarTabla();
+  };
+
+  function actualizarNumeroFacturaVisualmente() {
+    const numFormateado = String(contadorFactura).padStart(4, '0');
+    document.getElementById('lblNumFactura').innerText = `Factura #${numFormateado}`;
+  }
+
+  function inicializarTabla() {
+    const tbody = document.getElementById('cuerpoTabla');
+    tbody.innerHTML = '';
+    agregarFila();
+  }
 
   function calcularTotales() {
     const filas = document.querySelectorAll('#cuerpoTabla tr');
@@ -106,7 +160,7 @@
     nuevaFila.innerHTML = `
       <td><input type="number" class="cant" value="1" min="1" oninput="calcularTotales()"></td>
       <td>
-        <input type="text" placeholder="Ej. Ficus Benjamina (M-24)">
+        <input type="text" class="desc" placeholder="Ej. Monstera Deliciosa (M-18)">
         <button class="btn-remove no-print" onclick="eliminarFila(this)">✕</button>
       </td>
       <td><input type="number" class="precio" value="0" min="0" step="0.01" oninput="calcularTotales()"></td>
@@ -118,9 +172,132 @@
   }
 
   function eliminarFila(boton) {
-    const fila = boton.closest('tr');
-    fila.remove();
-    calcularTotales();
+    const filas = document.querySelectorAll('#cuerpoTabla tr');
+    if (filas.length > 1) {
+      const fila = boton.closest('tr');
+      fila.remove();
+      calcularTotales();
+    } else {
+      alert('La factura debe tener al menos un renglón.');
+    }
+  }
+
+  // --- NUEVA FACTURA ---
+  function nuevaFactura() {
+    const cliente = document.getElementById('nombreCliente').value.trim();
+    if (cliente !== '') {
+      if (!confirm('¿Deseas iniciar una NUEVA FACTURA? Se limpiará el formulario actual.')) {
+        return;
+      }
+    }
+    
+    // Limpiar campos
+    document.getElementById('nombreCliente').value = '';
+    document.getElementById('fecha').valueAsDate = new Date();
+    inicializarTabla();
+    
+    // Ocultar historial si estaba abierto
+    document.getElementById('seccionHistorial').style.display = 'none';
+  }
+
+  // --- GUARDADO Y HISTORIAL ---
+  function obtenerFacturasGuardadas() {
+    return JSON.parse(localStorage.getItem('facturas_vivero')) || [];
+  }
+
+  function guardarFactura() {
+    const clienteInput = document.getElementById('nombreCliente').value.trim();
+    const fechaInput = document.getElementById('fecha').value;
+    const filas = document.querySelectorAll('#cuerpoTabla tr');
+
+    if (!clienteInput) {
+      alert('Por favor, ingresa el nombre del cliente antes de guardar.');
+      return;
+    }
+
+    const detalles = [];
+    filas.forEach(fila => {
+      const cantidad = parseFloat(fila.querySelector('.cant').value) || 0;
+      const descripcion = fila.querySelector('.desc').value.trim();
+      const precio = parseFloat(fila.querySelector('.precio').value) || 0;
+      
+      if (descripcion !== '') {
+        detalles.push({
+          cantidad: cantidad,
+          descripcion: descripcion,
+          precioUnitario: precio,
+          subtotal: cantidad * precio
+        });
+      }
+    });
+
+    if (detalles.length === 0) {
+      alert('Ingresa al menos un producto para guardar la factura.');
+      return;
+    }
+
+    const totalGlobal = detalles.reduce((acc, item) => acc + item.subtotal, 0);
+    const facturas = obtenerFacturasGuardadas();
+    const numFacturaStr = '#' + String(contadorFactura).padStart(4, '0');
+
+    const nuevaFacturaObj = {
+      id: numFacturaStr,
+      fecha: fechaInput,
+      cliente: clienteInput,
+      detalles: detalles,
+      total: totalGlobal
+    };
+
+    facturas.push(nuevaFacturaObj);
+    localStorage.setItem('facturas_vivero', JSON.stringify(facturas));
+
+    // Incrementar número de factura para la siguiente
+    contadorFactura++;
+    localStorage.setItem('contador_factura_vivero', contadorFactura);
+
+    alert(`Factura ${numFacturaStr} guardada con éxito.`);
+    
+    // Preparar automáticamente la siguiente factura limpia
+    actualizarNumeroFacturaVisualmente();
+    document.getElementById('nombreCliente').value = '';
+    inicializarTabla();
+  }
+
+  function mostrarHistorial() {
+    const facturas = obtenerFacturasGuardadas();
+    const cuerpoHistorial = document.getElementById('cuerpoHistorial');
+    const contenedorHistorial = document.getElementById('seccionHistorial');
+    
+    cuerpoHistorial.innerHTML = '';
+    contenedorHistorial.style.display = 'block';
+
+    if (facturas.length === 0) {
+      cuerpoHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay facturas guardadas aún.</td></tr>';
+      return;
+    }
+
+    facturas.forEach((factura, index) => {
+      const fila = document.createElement('tr');
+      fila.innerHTML = `
+        <td><strong>${factura.id}</strong></td>
+        <td>${factura.fecha}</td>
+        <td>${factura.cliente}</td>
+        <td>$${factura.total.toFixed(2)}</td>
+        <td>
+          <button style="background-color: #e53935; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;" onclick="eliminarFactura(${index})">Eliminar</button>
+        </td>
+      `;
+      cuerpoHistorial.appendChild(fila);
+    });
+  }
+
+  function eliminarFactura(index) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta factura del historial?')) {
+      const facturas = obtenerFacturasGuardadas();
+      facturas.splice(index, 1);
+      localStorage.setItem('facturas_vivero', JSON.stringify(facturas));
+      mostrarHistorial();
+    }
   }
 </script>
 
